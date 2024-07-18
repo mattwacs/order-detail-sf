@@ -61,7 +61,7 @@ export default function Home() {
       const response = await fetch(`/api/ns_oauth?item_ids=${queryString}`);
       const data = await response.json();
 
-      console.log('netsuite data', data);
+      // console.log('netsuite data', data);
       if (data.error) {
         setError(data.error);
       }
@@ -69,7 +69,7 @@ export default function Home() {
         
         const mergedData = data.map((item) => {
           const sfItem = productDataSf.find((sfItem) => sfItem.part_number === item.id);
-          console.log('sfItem', sfItem, 'item.id', item.id);
+          // console.log('sfItem', sfItem, 'item.id', item.id);
 
           if (sfItem) {
             return {
@@ -82,7 +82,7 @@ export default function Home() {
           }
         });
 
-        console.log('final data', mergedData);
+        // console.log('final data', mergedData);
         setFinalData(mergedData);
       }
     } catch (err) {
