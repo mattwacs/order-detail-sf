@@ -61,7 +61,7 @@ export default function Home() {
       const response = await fetch(`/api/ns_oauth?item_ids=${queryString}`);
       const data = await response.json();
 
-      // console.log('netsuite data', data);
+      console.log('netsuite data', data);
       if (data.error) {
         setError(data.error);
       }
@@ -69,7 +69,7 @@ export default function Home() {
         
         const mergedData = data.map((item) => {
           const sfItem = productDataSf.find((sfItem) => sfItem.part_number === item.id);
-          // console.log('sfItem', sfItem, 'item.id', item.id);
+          console.log('sfItem', sfItem, 'item.id', item.id);
 
           if (sfItem) {
             return {
@@ -82,7 +82,7 @@ export default function Home() {
           }
         });
 
-        // console.log('final data', mergedData);
+        console.log('final data', mergedData);
         setFinalData(mergedData);
       }
     } catch (err) {
@@ -99,6 +99,14 @@ export default function Home() {
     );
   }
 
+  function checkKitForBackorders(items) {
+    return items.some(item => 
+      item.locations && item.locations.some(location => 
+        location.quantitybackordered !== "" && parseInt(location.quantitybackordered, 10) > 0
+      )
+    );
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center overflow-x-scroll py-6">
       {isLoading && (
@@ -109,15 +117,16 @@ export default function Home() {
       {error && (
         <div className="py-10 font-bold">{error.message}</div>
       )}
-      <div>
+      <div className="max-h-600 overflow-y-scroll">
         {finalData.map((item, index) => (
-          <>
-            <div key={item.id} className="m-6">
+          <div key={item.id} className="rounded-lg border bg-white mb-2">
+          {item.type === 'inventory' ? (
+            <div className="m-6">
               <h2 className="font-bold text-wrap flex items-center">
                 {checkForBackorder(item) ? (
-                  <CancelIcon sx={{ color: red[500] }} />
+                  <CancelIcon sx={{ color: red[500], marginRight: '5px' }} />
                 ) : (
-                  <CheckBoxIcon sx={{ color: green[500] }} />
+                  <CheckBoxIcon sx={{ color: green[500], marginRight: '5px' }} />
                 )}
                 {item.product_description}{' '}{'('}{item.name}{')'}
               </h2>
@@ -190,8 +199,171 @@ export default function Home() {
                 <p className='mt-4 text-xs font-bold'>No open Purchase Orders found.</p>
               )}
             </div>
-            {index < finalData.length - 1 && <Divider />}
-          </>
+          ) : (
+            <div className="m-6">
+              <h2 className="font-bold text-wrap flex items-center">
+                {checkKitForBackorders(item.items) ? (
+                  <CancelIcon sx={{ color: red[500], marginRight: '5px' }} />
+                ) : (
+                  <CheckBoxIcon sx={{ color: green[500], marginRight: '5px' }} />
+                )}
+                {item.product_description}{' '}{'(KIT ITEM)'}
+                {/* {item.product_description}{' '}{'('}{item.name}{')'} */}
+              </h2>
+              {item.items && item.items.length > 0 ? item.items.map((kitItem, index) => (
+                <div key={kitItem.id} className="mt-2 border px-2 py-2 rounded-md">
+                  <h4 className="font-bold text-sm text-wrap flex items-center">
+                    {index + 1}:{' '}{kitItem.name}
+                    {' '}
+                    {checkForBackorder(kitItem) ? (
+                      <CancelIcon sx={{ color: red[500], fontSize: '16px', marginLeft: '5px' }} />
+                    ) : (
+                      <CheckBoxIcon sx={{ color: green[500], fontSize: '16px', marginLeft: '5px' }} />
+                    )}
+                  </h4>
+                  {kitItem.locations && kitItem.locations.length > 0 ? (
+                    <table className="w-full text-xs text-left">
+                      <thead className="text-xs uppercase border-b">
+                        <tr>
+                          <th scope="col" className="px-4 py-3 max-w-sm text-center">
+                              Location
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-center">
+                              On Hand
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-center">
+                              Comitted
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-center">
+                              Back Ordered
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {kitItem.locations.map((location) => (
+                          <tr key={location.value} className="border-b">
+                            <td className="px-4 py-2 border-r max-w-sm min-w-sm">{location.text}</td>
+                            <td className="px-4 py-2 text-center border-r">{location.quantityonhand !== "" ? location.quantityonhand : 0}</td>
+                            <td className="px-4 py-2 text-center border-r">{location.quantitycommitted !== "" ? location.quantitycommitted : 0}</td>
+                            <td className="px-4 py-2 text-center">{location.quantitybackordered !== "" ? location.quantitybackordered : 0}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className='mt-4 text-xs font-bold'>No Inventory details available.</p>
+                  )}
+                  {kitItem.purchaseOrders && kitItem.purchaseOrders.length > 0 ? (
+                    <table className='w-full text-xs text-left mt-2'>
+                      <thead className='text-xs uppercase border-b'>
+                        <tr>
+                          <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                            Date
+                          </th>
+                          <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                            PO #
+                          </th>
+                          <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                            Vendor
+                          </th>
+                          <th scope="col" className='px-4 py-3 text-center'>
+                            Quantity
+                          </th>
+                          <th scope="col" className='px-4 py-3 text-center'>
+                            EXP Delivery Date
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {kitItem.purchaseOrders.map((po) => (
+                          <tr key={po.tranid} className='border-b'>
+                            <td className='px-4 py-2 border-r max-w-sm text-center'>{po.trandate}</td>
+                            <td className='px-4 py-2 border-r max-w-sm text-center'>{po.tranid}</td>
+                            <td className='px-4 py-2 border-r max-w-sm text-center'>{po.vendor}</td>
+                            <td className='px-4 py-2 border-r text-center'>{po.quantity}</td>
+                            <td className='px-4 py-2 text-center'>{po.expectedreceiptdate}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className='mt-4 text-xs font-bold'>No open Purchase Orders found.</p>
+                  )}
+                </div>
+              )) : (
+                <p className='mt-4 text-xs font-bold'>No items found for kit.</p>
+              )}
+              {/* {item.locations && item.locations.length > 0 ? (
+                <table className="w-full text-xs text-left">
+                  <thead className="text-xs uppercase border-b">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 max-w-sm text-center">
+                          Location
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-center">
+                          On Hand
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-center">
+                          Comitted
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-center">
+                          Back Ordered
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.locations.map((location) => (
+                      <tr key={location.value} className="border-b">
+                        <td className="px-4 py-2 border-r max-w-sm min-w-sm">{location.text}</td>
+                        <td className="px-4 py-2 text-center border-r">{location.quantityonhand !== "" ? location.quantityonhand : 0}</td>
+                        <td className="px-4 py-2 text-center border-r">{location.quantitycommitted !== "" ? location.quantitycommitted : 0}</td>
+                        <td className="px-4 py-2 text-center">{location.quantitybackordered !== "" ? location.quantitybackordered : 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className='mt-4 text-xs font-bold'>No Inventory details available.</p>
+              )}
+              {item.purchaseOrders && item.purchaseOrders.length > 0 ? (
+                <table className='w-full text-xs text-left mt-2'>
+                  <thead className='text-xs uppercase border-b'>
+                    <tr>
+                      <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                        Date
+                      </th>
+                      <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                        PO #
+                      </th>
+                      <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                        Vendor
+                      </th>
+                      <th scope="col" className='px-4 py-3 text-center'>
+                        Quantity
+                      </th>
+                      <th scope="col" className='px-4 py-3 text-center'>
+                        EXP Delivery Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.purchaseOrders.map((po) => (
+                      <tr key={po.tranid} className='border-b'>
+                        <td className='px-4 py-2 border-r max-w-sm text-center'>{po.trandate}</td>
+                        <td className='px-4 py-2 border-r max-w-sm text-center'>{po.tranid}</td>
+                        <td className='px-4 py-2 border-r max-w-sm text-center'>{po.vendor}</td>
+                        <td className='px-4 py-2 border-r text-center'>{po.quantity}</td>
+                        <td className='px-4 py-2 text-center'>{po.expectedreceiptdate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className='mt-4 text-xs font-bold'>No open Purchase Orders found.</p>
+              )} */}
+            </div>
+          )}
+          </div>
         ))}
       </div>
     </main>
