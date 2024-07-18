@@ -11,6 +11,8 @@ export async function authenticateSalesforce() {
   console.log('SF_SECURITY_TOKEN:', process.env.SF_SECURITY_TOKEN ? 'Loaded' : 'Missing');
 
   const password = `${process.env.SF_PASSWORD}${process.env.SF_SECURITY_TOKEN}`;
+  console.log('password string', process.env.SF_PASSWORD);
+  console.log('security token', process.env.SF_SECURITY_TOKEN);
   console.log('password', password);
   console.log('username', process.env.SF_USERNAME);
 
