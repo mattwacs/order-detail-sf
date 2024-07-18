@@ -1,7 +1,18 @@
 import axios from 'axios'
 
 export async function authenticateSalesforce() {
+  console.log('Authenticating with Salesforce...');
+    
+  console.log('Environment Variables:');
+  console.log('SF_CLIENT_KEY:', process.env.SF_CLIENT_KEY ? 'Loaded' : 'Missing');
+  console.log('SF_CLIENT_SECRET:', process.env.SF_CLIENT_SECRET ? 'Loaded' : 'Missing');
+  console.log('SF_USERNAME:', process.env.SF_USERNAME ? 'Loaded' : 'Missing');
+  console.log('SF_PASSWORD:', process.env.SF_PASSWORD ? 'Loaded' : 'Missing');
+  console.log('SF_SECURITY_TOKEN:', process.env.SF_SECURITY_TOKEN ? 'Loaded' : 'Missing');
+
   const password = `${process.env.SF_PASSWORD}${process.env.SF_SECURITY_TOKEN}`;
+  console.log('password', password);
+  console.log('username', process.env.SF_USERNAME);
 
   try {
     const response = await axios.post('https://login.salesforce.com/services/oauth2/token', null, {
@@ -17,6 +28,7 @@ export async function authenticateSalesforce() {
     return response.data.access_token
   } catch (err) {
     console.error('Salesforce authentication error', err.response.data);
+    console.error('Salesforce authentication error:', err.response ? err.response.data : err.message);
     throw new Error('Auth failed', err)
   }
 }
