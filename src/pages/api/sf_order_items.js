@@ -7,9 +7,13 @@ export default async function handler(req, res) {
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
   const host = headers.host;
 
+  console.log(protocol, host);
+
   try {
     const authResponse = await axios.post(`${protocol}://${host}/api/sf_auth`, {});
     const accessToken = authResponse.data.accessToken;
+
+    console.log('access token', accessToken);
     if (!accessToken) {
       return res.status(500).json({ error: 'Failed to authenticate with Salesforce' });
     }
