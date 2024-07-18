@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CircularProgress } from "@mui/material";
+import { Divider } from "@mui/material";
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 
@@ -50,6 +51,7 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       setError(err);
+      setIsLoading(false);
     }
   };
 
@@ -107,86 +109,89 @@ export default function Home() {
       {error && (
         <div className="py-10 font-bold">{error.message}</div>
       )}
-      <div className="py-6">
-        {finalData.map((item) => (
-          <div key={item.id} className="mb-6">
-            <h2 className="font-bold text-wrap flex items-center">
-              {checkForBackorder(item) ? (
-                <CancelIcon sx={{ color: red[500] }} />
+      <div>
+        {finalData.map((item, index) => (
+          <>
+            <div key={item.id} className="m-6">
+              <h2 className="font-bold text-wrap flex items-center">
+                {checkForBackorder(item) ? (
+                  <CancelIcon sx={{ color: red[500] }} />
+                ) : (
+                  <CheckBoxIcon sx={{ color: green[500] }} />
+                )}
+                {item.product_description}{' '}{'('}{item.name}{')'}
+              </h2>
+              {item.locations && item.locations.length > 0 ? (
+                <table className="w-full text-xs text-left">
+                  <thead className="text-xs uppercase border-b">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 max-w-sm text-center">
+                          Location
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-center">
+                          On Hand
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-center">
+                          Comitted
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-center">
+                          Back Ordered
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.locations.map((location) => (
+                      <tr key={location.value} className="border-b">
+                        <td className="px-4 py-2 border-r max-w-sm min-w-sm">{location.text}</td>
+                        <td className="px-4 py-2 text-center border-r">{location.quantityonhand !== "" ? location.quantityonhand : 0}</td>
+                        <td className="px-4 py-2 text-center border-r">{location.quantitycommitted !== "" ? location.quantitycommitted : 0}</td>
+                        <td className="px-4 py-2 text-center">{location.quantitybackordered !== "" ? location.quantitybackordered : 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               ) : (
-                <CheckBoxIcon sx={{ color: green[500] }} />
+                <p className='mt-4 text-xs font-bold'>No Inventory details available.</p>
               )}
-              {item.product_description}{' '}{'('}{item.name}{')'}
-            </h2>
-            {item.locations && item.locations.length > 0 ? (
-              <table className="w-full text-xs text-left">
-                <thead className="text-xs uppercase border-b">
-                  <tr>
-                    <th scope="col" className="px-4 py-3 max-w-sm text-center">
-                        Location
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-center">
-                        On Hand
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-center">
-                        Comitted
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-center">
-                        Back Ordered
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {item.locations.map((location) => (
-                    <tr key={location.value} className="border-b">
-                      <td className="px-4 py-2 border-r max-w-sm min-w-sm">{location.text}</td>
-                      <td className="px-4 py-2 text-center border-r">{location.quantityonhand !== "" ? location.quantityonhand : 0}</td>
-                      <td className="px-4 py-2 text-center border-r">{location.quantitycommitted !== "" ? location.quantitycommitted : 0}</td>
-                      <td className="px-4 py-2 text-center">{location.quantitybackordered !== "" ? location.quantitybackordered : 0}</td>
+              {item.purchaseOrders && item.purchaseOrders.length > 0 ? (
+                <table className='w-full text-xs text-left mt-2'>
+                  <thead className='text-xs uppercase border-b'>
+                    <tr>
+                      <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                        Date
+                      </th>
+                      <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                        PO #
+                      </th>
+                      <th scope="col" className='px-4 py-3 max-w-sm text-center'>
+                        Vendor
+                      </th>
+                      <th scope="col" className='px-4 py-3 text-center'>
+                        Quantity
+                      </th>
+                      <th scope="col" className='px-4 py-3 text-center'>
+                        EXP Delivery Date
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className='mt-4 text-xs font-bold'>No Inventory details available.</p>
-            )}
-            {item.purchaseOrders && item.purchaseOrders.length > 0 ? (
-              <table className='w-full text-xs text-left mt-2'>
-                <thead className='text-xs uppercase border-b'>
-                  <tr>
-                    <th scope="col" className='px-4 py-3 max-w-sm text-center'>
-                      Date
-                    </th>
-                    <th scope="col" className='px-4 py-3 max-w-sm text-center'>
-                      PO #
-                    </th>
-                    <th scope="col" className='px-4 py-3 max-w-sm text-center'>
-                      Vendor
-                    </th>
-                    <th scope="col" className='px-4 py-3 text-center'>
-                      Quantity
-                    </th>
-                    <th scope="col" className='px-4 py-3 text-center'>
-                      EXP Delivery Date
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {item.purchaseOrders.map((po) => (
-                    <tr key={po.tranid} className='border-b'>
-                      <td className='px-4 py-2 border-r max-w-sm text-center'>{po.trandate}</td>
-                      <td className='px-4 py-2 border-r max-w-sm text-center'>{po.tranid}</td>
-                      <td className='px-4 py-2 border-r max-w-sm text-center'>{po.vendor}</td>
-                      <td className='px-4 py-2 border-r text-center'>{po.quantity}</td>
-                      <td className='px-4 py-2 text-center'>{po.expectedreceiptdate}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className='mt-4 text-xs font-bold'>No open Purchase Orders found.</p>
-            )}
-          </div>
+                  </thead>
+                  <tbody>
+                    {item.purchaseOrders.map((po) => (
+                      <tr key={po.tranid} className='border-b'>
+                        <td className='px-4 py-2 border-r max-w-sm text-center'>{po.trandate}</td>
+                        <td className='px-4 py-2 border-r max-w-sm text-center'>{po.tranid}</td>
+                        <td className='px-4 py-2 border-r max-w-sm text-center'>{po.vendor}</td>
+                        <td className='px-4 py-2 border-r text-center'>{po.quantity}</td>
+                        <td className='px-4 py-2 text-center'>{po.expectedreceiptdate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className='mt-4 text-xs font-bold'>No open Purchase Orders found.</p>
+              )}
+            </div>
+            {index < finalData.length - 1 && <Divider />}
+          </>
         ))}
       </div>
     </main>
