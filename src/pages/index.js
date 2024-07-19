@@ -117,7 +117,7 @@ export default function Home() {
       {error && (
         <div className="py-10 font-bold">{error.message}</div>
       )}
-      <div className="max-h-600 overflow-y-scroll">
+      <div className="max-h-900 overflow-y-scroll">
         {finalData.map((item, index) => (
           <div key={item.id} className="rounded-lg border bg-white mb-10">
           {item.type === 'inventory' ? (
