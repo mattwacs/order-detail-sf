@@ -119,7 +119,7 @@ export default function Home() {
       )}
       <div className="max-h-600 overflow-y-scroll">
         {finalData.map((item, index) => (
-          <div key={item.id} className="rounded-lg border bg-white mb-2">
+          <div key={item.id} className="rounded-lg border bg-white mb-10">
           {item.type === 'inventory' ? (
             <div className="m-6">
               <h2 className="font-bold text-wrap flex items-center">
