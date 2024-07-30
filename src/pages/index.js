@@ -94,15 +94,19 @@ export default function Home() {
   }
 
   function checkForBackorder(item) {
-    return item.locations && item.locations.some(location => 
-      location.quantitybackordered !== "" && parseInt(location.quantitybackordered, 10) > 0
+    return item.locations && item.locations.some(location =>
+      location.value === "1" && 
+      location.quantitybackordered !== "" && 
+      parseInt(location.quantitybackordered, 10) > 0
     );
   }
 
   function checkKitForBackorders(items) {
     return items.some(item => 
       item.locations && item.locations.some(location => 
-        location.quantitybackordered !== "" && parseInt(location.quantitybackordered, 10) > 0
+        location.value === "1" &&
+        location.quantitybackordered !== "" && 
+        parseInt(location.quantitybackordered, 10) > 0
       )
     );
   }
